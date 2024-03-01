@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 const $ = document.querySelectorAll.bind(document);
 const $$ = document.querySelector.bind(document);
@@ -9,48 +9,48 @@ NodeList.prototype.forEach = Array.prototype.forEach;
 
 const fieldsets = [
   {
-    title: "Days of the week",
-    type: "checkbox",
-    name: "days_of_week",
+    title: 'Days of the week',
+    type: 'checkbox',
+    name: 'days_of_week',
     data: DAYS_OF_WEEK,
   },
   {
-    title: "Status",
-    type: "radio",
-    name: "activity_select_param",
+    title: 'Status',
+    type: 'radio',
+    name: 'activity_select_param',
     data: STATUS,
-    def: ["2"],
+    def: ['2'],
   },
   {
-    title: "Location",
-    type: "checkbox",
-    name: "center_ids",
+    title: 'Location',
+    type: 'checkbox',
+    name: 'center_ids',
     data: ORIGINAL_DATA.centers,
   },
   {
-    title: "Age category",
-    type: "checkbox",
-    name: "activity_other_category_ids",
+    title: 'Age category',
+    type: 'checkbox',
+    name: 'activity_other_category_ids',
     data: ORIGINAL_DATA.othercategories,
-    def: ["23"],
+    def: ['23'],
   },
   {
-    title: "Sorty by",
-    type: "radio",
-    name: "order_by",
-    data: ORIGINAL_DATA.sorts.map(item => ({ id: item, desc: item })),
+    title: 'Sorty by',
+    type: 'radio',
+    name: 'order_by',
+    data: ORIGINAL_DATA.sorts.map((item) => ({ id: item, desc: item })),
   },
 ];
 
-const $form = $$("#form");
-const $activities = $$("#activities");
+const $form = $$('#form');
+const $activities = $$('#activities');
 
 const drawInput = function (type, name, def, input) {
   const { id, desc } = input;
   const code = `
       <label for="${name}_${id}">
         <input type="${type}" name="${name}" id="${name}_${id}" value="${id}"${
-    def?.includes(id) ? "checked" : ""
+    def?.includes(id) ? 'checked' : ''
   }>${desc}
       </label>
     `;
@@ -64,7 +64,7 @@ const drawFieldset = function (fieldset) {
   const code = `
       <fieldset>
         <legend>${title}</legend>
-        ${data.map(input => drawInput(type, name, def, input)).join("")}
+        ${data.map((input) => drawInput(type, name, def, input)).join('')}
       </fieldset>
     `;
 
@@ -77,7 +77,7 @@ const fetchData = async (url, options) => {
   return data;
 };
 
-fieldsets.forEach(fieldset => {
+fieldsets.forEach((fieldset) => {
   $form.innerHTML += drawFieldset(fieldset);
 });
 
@@ -98,7 +98,7 @@ const drawActivities = function (activities) {
           </tr>
         </thead>
         <tbody>
-          ${activities.map(activity => drawActivity(activity)).join("")}
+          ${activities.map((activity) => drawActivity(activity)).join('')}
         </tbody>
       </table>
     `;
@@ -136,46 +136,46 @@ const drawActivity = function (activity) {
   return code;
 };
 
-$form.on("submit", async function (event) {
+$form.on('submit', async function (event) {
   event.preventDefault();
   const formData = new FormData($form);
   // for (const pair of formData.entries()) {
   //   console.log(pair[0], pair[1]);
   // }
-  const days_of_week = new Array(7).fill("0");
-  formData.getAll("days_of_week").forEach(i => {
-    days_of_week[i - 1] = "1";
+  const days_of_week = new Array(7).fill('0');
+  formData.getAll('days_of_week').forEach((i) => {
+    days_of_week[i - 1] = '1';
   });
 
   const body = JSON.stringify({
     activity_search_pattern: {
-      center_ids: formData.getAll("center_ids"),
+      center_ids: formData.getAll('center_ids'),
       activity_other_category_ids: formData.getAll(
-        "activity_other_category_ids"
+        'activity_other_category_ids'
       ),
-      activity_keyword: formData.get("activity_keyword"),
+      activity_keyword: formData.get('activity_keyword'),
       activity_select_param: parseInt(
-        formData.get("activity_select_param"),
+        formData.get('activity_select_param'),
         10
       ),
-      days_of_week: days_of_week.join(""),
+      days_of_week: days_of_week.join(''),
     },
   });
   console.log(body);
 
   const res = await fetchData(
-    "http://localhost:3333/www-mounted/proxy-server/proxy.php?giulia=https://anc.ca.apm.activecommunities.com/vancouver/rest/activities/list",
+    'http://localhost:3333/www-mounted/proxy-server/proxy.php?giulia=https://anc.ca.apm.activecommunities.com/vancouver/rest/activities/list',
     {
-      method: "POST",
+      method: 'POST',
       headers: {
-        Host: "anc.ca.apm.activecommunities.com",
-        "Content-Type": "application/json",
-        "Content-Length": body.length.toString(),
+        Host: 'anc.ca.apm.activecommunities.com',
+        'Content-Type': 'application/json',
+        'Content-Length': body.length.toString(),
       },
       body: body,
     }
   );
-  console.log("res", res);
+  console.log('res', res);
 
   $activities.innerHTML = drawActivities(res.body.activity_items);
 });
