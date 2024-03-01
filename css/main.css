@@ -11,7 +11,49 @@ body, input {
   font-size: 1rem;
   line-height: 1.4;
 }
-label, input[type=submit] {
+label, input[type=submit], summary {
   cursor: pointer;
   user-select: none;
+}
+
+label {
+  align-items: flex-start;
+  display: flex;
+}
+fieldset {
+  display: grid;
+  grid-gap: .5em;
+  grid-template-columns: repeat(auto-fill, minmax(14em, 1fr));
+}
+#basic_search {
+  display: flex;
+  gap: 1em;
+
+  input[type=search] {
+    flex: auto;
+  }
+
+  input[type=submit] {
+    width: 10em;
+  }
+}
+#days_of_week {
+  grid-template-columns: repeat(auto-fill, minmax(4em, 1fr));
+}
+
+#activities {
+  overflow-x: scroll;
+}
+table {
+  border-spacing: 0;
+  white-space: nowrap;
+}
+table, th, td {
+  border: .5px solid;
+}
+th, td {
+  padding: .2em .3em;
+}
+th {
+  text-align: left;
 }

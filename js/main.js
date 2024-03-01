@@ -44,6 +44,7 @@ const fieldsets = [
 
 const $form = $$('#form');
 const $activities = $$('#activities');
+const $advanced_search = $$('#advanced_search');
 
 const drawInput = function (type, name, def, input) {
   const { id, desc } = input;
@@ -62,7 +63,7 @@ const drawFieldset = function (fieldset) {
   const { title, type, name, def, data } = fieldset;
 
   const code = `
-      <fieldset>
+      <fieldset id="${name}">
         <legend>${title}</legend>
         ${data.map((input) => drawInput(type, name, def, input)).join('')}
       </fieldset>
@@ -78,10 +79,14 @@ const fetchData = async (url, options) => {
 };
 
 fieldsets.forEach((fieldset) => {
-  $form.innerHTML += drawFieldset(fieldset);
+  $advanced_search.innerHTML += drawFieldset(fieldset);
 });
 
 const drawActivities = function (activities) {
+  if (activities.length === 0) {
+    return `<div>No results found.</div>`;
+  }
+
   const code = `
       <table>
         <thead>

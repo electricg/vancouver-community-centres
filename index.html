@@ -12,8 +12,15 @@
 <body>
     
   <form id="form">
-    <input type="search" placeholder="Search by keyword OR by number" name="activity_keyword" value="volley">
-    <input type="submit" value="Search">
+    <div id="basic_search">
+      <input type="search" placeholder="Search by keyword OR by number" name="activity_keyword" value="volley">
+      <input type="submit" value="Search">
+    </div>
+
+    <details>
+      <summary>Advanced search</summary>
+      <div id="advanced_search"></div>
+    </details>
   </form>
 
   <div id="activities"></div>
