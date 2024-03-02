@@ -150,7 +150,7 @@ const drawActivity = function (activity, index) {
 
 const fetchActivities = async (activities, body, order_by, page_number) => {
   const res = await fetchJsonData(
-    'http://localhost:3333/www-mounted/proxy-server/proxy.php?giulia=https://anc.ca.apm.activecommunities.com/vancouver/rest/activities/list',
+    'https://proxy.giulia.dev/proxy.php?giulia=https://anc.ca.apm.activecommunities.com/vancouver/rest/activities/list',
     {
       method: 'POST',
       headers: {
