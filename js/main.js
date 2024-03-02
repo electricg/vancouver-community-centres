@@ -39,6 +39,7 @@ const fieldsets = [
     type: 'radio',
     name: 'order_by',
     data: ORIGINAL_DATA.sorts.map((item) => ({ id: item, desc: item })),
+    def: ['Name'],
   },
 ];
 
@@ -72,7 +73,7 @@ const drawFieldset = function (fieldset) {
   return code;
 };
 
-const fetchData = async (url, options) => {
+const fetchJsonData = async (url, options) => {
   const response = await fetch(url, options);
   const data = await response.json();
   return data;
@@ -91,6 +92,7 @@ const drawActivities = function (activities) {
       <table>
         <thead>
           <tr>
+            <th></th>
             <th>Id</th>
             <th>Name</th>
             <th>Location</th>
@@ -103,7 +105,9 @@ const drawActivities = function (activities) {
           </tr>
         </thead>
         <tbody>
-          ${activities.map((activity) => drawActivity(activity)).join('')}
+          ${activities
+            .map((activity, index) => drawActivity(activity, index + 1))
+            .join('')}
         </tbody>
       </table>
     `;
@@ -111,7 +115,7 @@ const drawActivities = function (activities) {
   return code;
 };
 
-const drawActivity = function (activity) {
+const drawActivity = function (activity, index) {
   const {
     activity_online_start_time,
     already_enrolled,
@@ -126,6 +130,7 @@ const drawActivity = function (activity) {
 
   const code = `
       <tr>
+        <td>${index}</td>
         <td>${number}</td>
         <td>${name}</td>
         <td>${location.label}</td>
@@ -141,6 +146,32 @@ const drawActivity = function (activity) {
   return code;
 };
 
+const fetchActivities = async (activities, body, order_by, page_number) => {
+  const res = await fetchJsonData(
+    'http://localhost:3333/www-mounted/proxy-server/proxy.php?giulia=https://anc.ca.apm.activecommunities.com/vancouver/rest/activities/list',
+    {
+      method: 'POST',
+      headers: {
+        Host: 'anc.ca.apm.activecommunities.com',
+        'Content-Type': 'application/json',
+        'Content-Length': body.length.toString(),
+        Page_info: `{"order_by":"${order_by}","page_number":${page_number}}`,
+      },
+      body: body,
+    }
+  );
+  // console.log(res);
+
+  activities.splice(
+    (res.headers.page_info.page_number - 1) *
+      res.headers.page_info.total_records_per_page,
+    0,
+    ...res.body.activity_items
+  );
+
+  return res;
+};
+
 $form.on('submit', async function (event) {
   event.preventDefault();
   const formData = new FormData($form);
@@ -151,6 +182,8 @@ $form.on('submit', async function (event) {
   formData.getAll('days_of_week').forEach((i) => {
     days_of_week[i - 1] = '1';
   });
+  const order_by = formData.get('order_by');
+  const page_number = 1;
 
   const body = JSON.stringify({
     activity_search_pattern: {
@@ -166,21 +199,27 @@ $form.on('submit', async function (event) {
       days_of_week: days_of_week.join(''),
     },
   });
-  console.log(body);
+  // console.log(body);
 
-  const res = await fetchData(
-    'http://localhost:3333/www-mounted/proxy-server/proxy.php?giulia=https://anc.ca.apm.activecommunities.com/vancouver/rest/activities/list',
-    {
-      method: 'POST',
-      headers: {
-        Host: 'anc.ca.apm.activecommunities.com',
-        'Content-Type': 'application/json',
-        'Content-Length': body.length.toString(),
-      },
-      body: body,
-    }
+  const fetches = [];
+  const activities = [];
+  fetches[page_number - 1] = await fetchActivities(
+    activities,
+    body,
+    order_by,
+    page_number
   );
-  console.log('res', res);
 
-  $activities.innerHTML = drawActivities(res.body.activity_items);
+  const total_page = fetches[page_number - 1]?.headers?.page_info?.total_page;
+
+  if (total_page > 1) {
+    for (let i = 2; i <= total_page; i++) {
+      fetches[i - 1] = fetchActivities(activities, body, order_by, i);
+      // console.log(i);
+    }
+  }
+  Promise.all(fetches).then(function () {
+    // console.log(activities);
+    $activities.innerHTML = drawActivities(activities);
+  });
 });
