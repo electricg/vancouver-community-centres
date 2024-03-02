@@ -100,6 +100,7 @@ const drawActivities = function (activities) {
             <th>Time</th>
             <th>Registered spots</th>
             <th>Total spots</th>
+            <th>Open spots</th>
             <th>Period</th>
             <th>Registration date</th>
           </tr>
@@ -138,6 +139,7 @@ const drawActivity = function (activity, index) {
         <td>${time_range}</td>
         <td>${already_enrolled}</td>
         <td>${total_open}</td>
+        <td>${total_open - already_enrolled}</td>
         <td>${date_range}</td>
         <td>${activity_online_start_time}</td>
       </tr>
