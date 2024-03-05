@@ -48,10 +48,12 @@ const fieldsets = [
 ];
 
 const $form = $$('#form');
-const $activities = $$('#activities');
+const $results = $$('#results');
 const $advanced_search = $$('#advanced_search');
 
-const drawInput = function (type, name, def, input) {
+let ALL_ACTIVITIES = [];
+
+const drawInput = (type, name, def, input) => {
   const { id, desc } = input;
   const code = `
       <label for="${name}_${id}">
@@ -64,7 +66,7 @@ const drawInput = function (type, name, def, input) {
   return code;
 };
 
-const drawFieldset = function (fieldset) {
+const drawFieldset = (fieldset) => {
   const { title, type, name, def, data } = fieldset;
 
   const code = `
@@ -77,48 +79,17 @@ const drawFieldset = function (fieldset) {
   return code;
 };
 
+const drawForm = (fieldsets) => {
+  return fieldsets.map((fieldset) => drawFieldset(fieldset)).join('');
+};
+
 const fetchJsonData = async (url, options) => {
   const response = await fetch(url, options);
   const data = await response.json();
   return data;
 };
 
-fieldsets.forEach((fieldset) => {
-  $advanced_search.innerHTML += drawFieldset(fieldset);
-});
-
-const drawActivities = function (activities) {
-  if (activities.length === 0) {
-    return `No activities found`;
-  }
-
-  const code = `
-      Found ${activities.length} activities
-      <table>
-        <thead>
-          <tr>
-            <th>Number</th>
-            <th>Name</th>
-            <th>Location</th>
-            <th>Day</th>
-            <th>Time</th>
-            <th>Period</th>
-            <th>Registered</th>
-            <th>Total</th>
-            <th>Open</th>
-            <th>Registration date</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${activities.map((activity) => drawActivity(activity)).join('')}
-        </tbody>
-      </table>
-    `;
-
-  return code;
-};
-
-const drawActivity = function (activity) {
+const drawActivity = (activity) => {
   const {
     activity_online_start_time,
     already_enrolled,
@@ -150,6 +121,37 @@ const drawActivity = function (activity) {
   return code;
 };
 
+const drawActivities = (activities) => {
+  if (activities.length === 0) {
+    return `No activities found`;
+  }
+
+  const code = `
+      Found ${activities.length} activities
+      <table>
+        <thead>
+          <tr>
+            <th onclick="orderActivities('number')">Number</th>
+            <th onclick="orderActivities('name')">Name</th>
+            <th onclick="orderActivities('location')">Location</th>
+            <th onclick="orderActivities('day')">Day</th>
+            <th onclick="orderActivities('time')">Time</th>
+            <th onclick="orderActivities('period')">Period</th>
+            <th onclick="orderActivities('registered')">Registered</th>
+            <th onclick="orderActivities('total')">Total</th>
+            <th onclick="orderActivities('open')">Open</th>
+            <th onclick="orderActivities('registration')">Registration date</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${activities.map((activity) => drawActivity(activity)).join('')}
+        </tbody>
+      </table>
+    `;
+
+  return code;
+};
+
 const fetchActivities = async (activities, body, order_by, page_number) => {
   const res = await fetchJsonData(
     'https://proxy.giulia.dev/proxy.php?giulia=https://anc.ca.apm.activecommunities.com/vancouver/rest/activities/list',
@@ -164,7 +166,6 @@ const fetchActivities = async (activities, body, order_by, page_number) => {
       body: body,
     }
   );
-  // console.log(res);
 
   activities.splice(
     (res.headers.page_info.page_number - 1) *
@@ -176,56 +177,77 @@ const fetchActivities = async (activities, body, order_by, page_number) => {
   return res;
 };
 
-$form.on('submit', async function (event) {
-  event.preventDefault();
-  $activities.innerHTML = 'Searching...';
+const orderActivities = (what) => {
+  console.log(what);
+};
 
-  const formData = new FormData($form);
-  // for (const pair of formData.entries()) {
-  //   console.log(pair[0], pair[1]);
-  // }
+const getFormData = (form) => {
+  const formData = new FormData(form);
+
   const days_of_week = new Array(7).fill('0');
   formData.getAll('days_of_week').forEach((i) => {
     days_of_week[i - 1] = '1';
   });
+
   const order_by = formData.get('order_by');
+
+  return {
+    days_of_week: days_of_week.join(''),
+    order_by,
+    center_ids: formData.getAll('center_ids'),
+    activity_other_category_ids: formData.getAll('activity_other_category_ids'),
+    activity_keyword: formData.get('activity_keyword'),
+    activity_select_param: parseInt(formData.get('activity_select_param'), 10),
+  };
+};
+
+$advanced_search.innerHTML = drawForm(fieldsets);
+
+$form.on('submit', async function (event) {
+  event.preventDefault();
+  $results.innerHTML = 'Searching...';
+
   const page_number = 1;
+
+  const {
+    activity_keyword,
+    activity_other_category_ids,
+    activity_select_param,
+    center_ids,
+    days_of_week,
+    order_by,
+  } = getFormData(this);
 
   const body = JSON.stringify({
     activity_search_pattern: {
-      center_ids: formData.getAll('center_ids'),
-      activity_other_category_ids: formData.getAll(
-        'activity_other_category_ids'
-      ),
-      activity_keyword: formData.get('activity_keyword'),
-      activity_select_param: parseInt(
-        formData.get('activity_select_param'),
-        10
-      ),
-      days_of_week: days_of_week.join(''),
+      activity_keyword,
+      activity_other_category_ids,
+      activity_select_param,
+      center_ids,
+      days_of_week,
     },
   });
-  // console.log(body);
 
   const fetches = [];
-  const activities = [];
-  fetches[page_number - 1] = await fetchActivities(
-    activities,
+  ALL_ACTIVITIES = [];
+
+  fetches[0] = await fetchActivities(
+    ALL_ACTIVITIES,
     body,
     order_by,
     page_number
   );
 
-  const total_page = fetches[page_number - 1]?.headers?.page_info?.total_page;
+  const total_page = fetches[0]?.headers?.page_info?.total_page;
 
   if (total_page > 1) {
     for (let i = 2; i <= total_page; i++) {
-      fetches[i - 1] = fetchActivities(activities, body, order_by, i);
-      // console.log(i);
+      fetches[i - 1] = fetchActivities(ALL_ACTIVITIES, body, order_by, i);
     }
   }
+
   Promise.all(fetches).then(function () {
-    // console.log(activities);
-    $activities.innerHTML = drawActivities(activities);
+    console.log(ALL_ACTIVITIES);
+    $results.innerHTML = drawActivities(ALL_ACTIVITIES);
   });
 });

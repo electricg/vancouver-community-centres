@@ -48,7 +48,7 @@ fieldset {
   grid-template-columns: repeat(auto-fill, minmax(4em, 1fr));
 }
 
-#activities {
+#results {
   margin: 1em 0;
   overflow-x: scroll;
 }
