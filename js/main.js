@@ -19,13 +19,17 @@ const fieldsets = [
     type: 'radio',
     name: 'activity_select_param',
     data: STATUS,
-    def: ['2'],
+    def: ['0'],
   },
   {
     title: 'Location',
     type: 'checkbox',
     name: 'center_ids',
-    data: ORIGINAL_DATA.centers,
+    data: ORIGINAL_DATA.centers.map(({ id, desc }) => ({
+      id: id,
+      desc: desc.replace('*', ''),
+    })),
+    def: ['38', '6', '29', '42'],
   },
   {
     title: 'Age category',
@@ -39,7 +43,7 @@ const fieldsets = [
     type: 'radio',
     name: 'order_by',
     data: ORIGINAL_DATA.sorts.map((item) => ({ id: item, desc: item })),
-    def: ['Name'],
+    def: ['Location'],
   },
 ];
 
@@ -85,30 +89,28 @@ fieldsets.forEach((fieldset) => {
 
 const drawActivities = function (activities) {
   if (activities.length === 0) {
-    return `<div>No results found.</div>`;
+    return `No activities found`;
   }
 
   const code = `
+      Found ${activities.length} activities
       <table>
         <thead>
           <tr>
-            <th></th>
-            <th>Id</th>
+            <th>Number</th>
             <th>Name</th>
             <th>Location</th>
             <th>Day</th>
             <th>Time</th>
-            <th>Registered spots</th>
-            <th>Total spots</th>
-            <th>Open spots</th>
             <th>Period</th>
+            <th>Registered</th>
+            <th>Total</th>
+            <th>Open</th>
             <th>Registration date</th>
           </tr>
         </thead>
         <tbody>
-          ${activities
-            .map((activity, index) => drawActivity(activity, index + 1))
-            .join('')}
+          ${activities.map((activity) => drawActivity(activity)).join('')}
         </tbody>
       </table>
     `;
@@ -116,7 +118,7 @@ const drawActivities = function (activities) {
   return code;
 };
 
-const drawActivity = function (activity, index) {
+const drawActivity = function (activity) {
   const {
     activity_online_start_time,
     already_enrolled,
@@ -124,6 +126,7 @@ const drawActivity = function (activity, index) {
     date_range,
     days_of_week,
     location,
+    id,
     number,
     time_range,
     total_open,
@@ -131,16 +134,15 @@ const drawActivity = function (activity, index) {
 
   const code = `
       <tr>
-        <td>${index}</td>
-        <td>${number}</td>
+        <td><a href="https://anc.ca.apm.activecommunities.com/vancouver/activity/search/enroll/${id}" target="_blank" rel="noreferrer">${number}</a></td>
         <td>${name}</td>
         <td>${location.label}</td>
         <td>${days_of_week}</td>
         <td>${time_range}</td>
+        <td>${date_range}</td>
         <td>${already_enrolled}</td>
         <td>${total_open}</td>
         <td>${total_open - already_enrolled}</td>
-        <td>${date_range}</td>
         <td>${activity_online_start_time}</td>
       </tr>
     `;
@@ -176,6 +178,8 @@ const fetchActivities = async (activities, body, order_by, page_number) => {
 
 $form.on('submit', async function (event) {
   event.preventDefault();
+  $activities.innerHTML = 'Searching...';
+
   const formData = new FormData($form);
   // for (const pair of formData.entries()) {
   //   console.log(pair[0], pair[1]);

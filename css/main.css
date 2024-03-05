@@ -16,6 +16,13 @@ label, input[type=submit], summary {
   user-select: none;
 }
 
+summary {
+  max-width: 100%;
+  width: max-content;
+}
+details {
+  margin: .5em 0 0;
+}
 label {
   align-items: flex-start;
   display: flex;
@@ -42,6 +49,7 @@ fieldset {
 }
 
 #activities {
+  margin: 1em 0;
   overflow-x: scroll;
 }
 table {
