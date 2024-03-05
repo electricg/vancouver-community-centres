@@ -83,12 +83,6 @@ const drawForm = (fieldsets) => {
   return fieldsets.map((fieldset) => drawFieldset(fieldset)).join('');
 };
 
-const fetchJsonData = async (url, options) => {
-  const response = await fetch(url, options);
-  const data = await response.json();
-  return data;
-};
-
 const drawActivity = (activity) => {
   const {
     activity_online_start_time,
@@ -152,7 +146,13 @@ const drawActivities = (activities) => {
   return code;
 };
 
-const fetchActivities = async (activities, body, order_by, page_number) => {
+const fetchJsonData = async (url, options) => {
+  const response = await fetch(url, options);
+  const data = await response.json();
+  return data;
+};
+
+const fetchActivities = async ({ activities, body, order_by, page_number }) => {
   const res = await fetchJsonData(
     'https://proxy.giulia.dev/proxy.php?giulia=https://anc.ca.apm.activecommunities.com/vancouver/rest/activities/list',
     {
@@ -175,6 +175,51 @@ const fetchActivities = async (activities, body, order_by, page_number) => {
   );
 
   return res;
+};
+
+const fetchAllActivities = async ({
+  activity_keyword,
+  activity_other_category_ids,
+  activity_select_param,
+  center_ids,
+  days_of_week,
+  order_by,
+}) => {
+  const body = JSON.stringify({
+    activity_search_pattern: {
+      activity_keyword,
+      activity_other_category_ids,
+      activity_select_param,
+      center_ids,
+      days_of_week,
+    },
+  });
+
+  const fetches = [];
+  const activities = [];
+
+  fetches[0] = await fetchActivities({
+    activities,
+    body,
+    order_by,
+    page_number: 1,
+  });
+
+  const total_page = fetches[0]?.headers?.page_info?.total_page;
+
+  if (total_page > 1) {
+    for (let i = 2; i <= total_page; i++) {
+      fetches[i - 1] = fetchActivities({
+        activities,
+        body,
+        order_by,
+        page_number: i,
+      });
+    }
+  }
+
+  await Promise.all(fetches);
+  return activities;
 };
 
 const orderActivities = (what) => {
@@ -207,8 +252,6 @@ $form.on('submit', async function (event) {
   event.preventDefault();
   $results.innerHTML = 'Searching...';
 
-  const page_number = 1;
-
   const {
     activity_keyword,
     activity_other_category_ids,
@@ -218,36 +261,14 @@ $form.on('submit', async function (event) {
     order_by,
   } = getFormData(this);
 
-  const body = JSON.stringify({
-    activity_search_pattern: {
-      activity_keyword,
-      activity_other_category_ids,
-      activity_select_param,
-      center_ids,
-      days_of_week,
-    },
-  });
-
-  const fetches = [];
-  ALL_ACTIVITIES = [];
-
-  fetches[0] = await fetchActivities(
-    ALL_ACTIVITIES,
-    body,
+  ALL_ACTIVITIES = await fetchAllActivities({
+    activity_keyword,
+    activity_other_category_ids,
+    activity_select_param,
+    center_ids,
+    days_of_week,
     order_by,
-    page_number
-  );
-
-  const total_page = fetches[0]?.headers?.page_info?.total_page;
-
-  if (total_page > 1) {
-    for (let i = 2; i <= total_page; i++) {
-      fetches[i - 1] = fetchActivities(ALL_ACTIVITIES, body, order_by, i);
-    }
-  }
-
-  Promise.all(fetches).then(function () {
-    console.log(ALL_ACTIVITIES);
-    $results.innerHTML = drawActivities(ALL_ACTIVITIES);
   });
+
+  $results.innerHTML = drawActivities(ALL_ACTIVITIES);
 });
