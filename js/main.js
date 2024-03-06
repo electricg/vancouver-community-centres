@@ -149,7 +149,7 @@ const drawActivities = (activities) => {
             <th onclick="orderActivities(this,'name')"          data-sort="Name"        >Name</th>
             <th onclick="orderActivities(this,'location')"      data-sort="Location"    >Location</th>
             <th onclick="orderActivities(this,'day')"           data-sort="Days of week">Day</th>
-            <th                                                 data-sort="Time range"  >Time</th>
+            <th onclick="orderActivities(this,'time')"          data-sort="Time range"  >Time</th>
             <th onclick="orderActivities(this,'period')"        data-sort="Date range"  >Period</th>
             <th onclick="orderActivities(this,'total')"                                 >Total</th>
             <th onclick="orderActivities(this,'registered')"                            >Registered</th>
@@ -269,6 +269,31 @@ const getDayOfWeekNumber = (day) => {
   return week.indexOf(day);
 };
 
+const formatTimeRange = (time) => {
+  return time
+    .split('-')
+    .map((i) => {
+      const b = i.trim();
+      if (b === 'Noon') {
+        return '12:00';
+      } else {
+        const c = b.split(' ');
+        const d = c[0].split(':');
+        const d0 = parseInt(d[0], 10);
+        if (c[1] === 'AM') {
+          if (d0 < 10) {
+            return `0${c[0]}`;
+          } else {
+            return c[0];
+          }
+        } else {
+          return `${d0 + 12}:${d[1]}`;
+        }
+      }
+    })
+    .join(' - ');
+};
+
 const formatActivities = (activities) => {
   activities.forEach((activity) => {
     activity.giulia = {
@@ -281,6 +306,7 @@ const formatActivities = (activities) => {
         : '',
       days_of_week_number: getDayOfWeekNumber(activity.days_of_week),
       openings: parseInt(activity.openings, 10),
+      time: formatTimeRange(activity.time_range),
     };
   });
 };
@@ -321,6 +347,10 @@ const orderActivities = function (el, what) {
         a1 = a.giulia.days_of_week_number;
         b1 = b.giulia.days_of_week_number;
         break;
+      case 'time':
+        a1 = a.giulia.time;
+        b1 = b.giulia.time;
+        break;
       case 'period':
         a1 = a.date_range_start;
         b1 = b.date_range_start;
@@ -345,7 +375,6 @@ const orderActivities = function (el, what) {
         a1 = a.activity_online_start_time;
         b1 = b.activity_online_start_time;
         break;
-      // todo time range
     }
 
     if (newOrder === 'asc') {
