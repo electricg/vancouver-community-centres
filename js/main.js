@@ -19,7 +19,7 @@ const fieldsets = [
     type: 'radio',
     name: 'activity_select_param',
     data: STATUS,
-    def: ['0'],
+    def: ['2'],
   },
   {
     title: 'Location',
@@ -29,7 +29,7 @@ const fieldsets = [
       id: id,
       desc: desc.replace('*', ''),
     })),
-    def: ['38', '6', '29', '42'],
+    def: [],
   },
   {
     title: 'Age category',
