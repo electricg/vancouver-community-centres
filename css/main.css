@@ -57,7 +57,7 @@ table {
   white-space: nowrap;
 }
 table, th, td {
-  border: .5px solid;
+  border: .5px solid #CCC;
 }
 th, td {
   padding: .2em .3em;
