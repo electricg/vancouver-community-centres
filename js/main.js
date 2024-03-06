@@ -94,6 +94,7 @@ const drawActivity = (activity) => {
     number,
     time_range,
     total_open,
+    urgent_message,
     giulia,
   } = activity;
 
@@ -109,6 +110,7 @@ const drawActivity = (activity) => {
         <td>${total_open}</td>
         <td>${giulia.open_spots}</td>
         <td><time datetime="${activity_online_start_time}">${giulia.registration_date_formatted}</time></td>
+        <td>${urgent_message.status_description}</td>
       </tr>
     `;
 
@@ -135,6 +137,7 @@ const drawActivities = (activities) => {
             <th onclick="orderActivities(this,'total')">Total</th>
             <th onclick="orderActivities(this,'open')">Open</th>
             <th onclick="orderActivities(this,'registration')">Registration date</th>
+            <th>Status</th>
           </tr>
         </thead>
         <tbody>
