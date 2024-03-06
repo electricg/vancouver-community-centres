@@ -90,25 +90,25 @@ const drawActivity = (activity) => {
     name,
     date_range,
     days_of_week,
-    location,
     id,
     number,
     time_range,
     total_open,
+    giulia,
   } = activity;
 
   const code = `
       <tr>
         <td><a href="https://anc.ca.apm.activecommunities.com/vancouver/activity/search/enroll/${id}" target="_blank" rel="noreferrer">${number}</a></td>
         <td>${name}</td>
-        <td>${location.label}</td>
+        <td>${giulia.location}</td>
         <td>${days_of_week}</td>
         <td>${time_range}</td>
         <td>${date_range}</td>
         <td>${already_enrolled}</td>
         <td>${total_open}</td>
-        <td>${total_open - already_enrolled}</td>
-        <td>${activity_online_start_time}</td>
+        <td>${giulia.open_spots}</td>
+        <td><time datetime="${activity_online_start_time}">${giulia.registration_date_formatted}</time></td>
       </tr>
     `;
 
@@ -125,16 +125,16 @@ const drawActivities = (activities) => {
       <table>
         <thead>
           <tr>
-            <th onclick="orderActivities('number')">Number</th>
-            <th onclick="orderActivities('name')">Name</th>
-            <th onclick="orderActivities('location')">Location</th>
-            <th onclick="orderActivities('day')">Day</th>
-            <th onclick="orderActivities('time')">Time</th>
-            <th onclick="orderActivities('period')">Period</th>
-            <th onclick="orderActivities('registered')">Registered</th>
-            <th onclick="orderActivities('total')">Total</th>
-            <th onclick="orderActivities('open')">Open</th>
-            <th onclick="orderActivities('registration')">Registration date</th>
+            <th>Number</th>
+            <th onclick="orderActivities(this,'name')">Name</th>
+            <th onclick="orderActivities(this,'location')">Location</th>
+            <th onclick="orderActivities(this,'day')">Day</th>
+            <th>Time</th>
+            <th onclick="orderActivities(this,'period')">Period</th>
+            <th onclick="orderActivities(this,'registered')">Registered</th>
+            <th onclick="orderActivities(this,'total')">Total</th>
+            <th onclick="orderActivities(this,'open')">Open</th>
+            <th onclick="orderActivities(this,'registration')">Registration date</th>
           </tr>
         </thead>
         <tbody>
@@ -222,10 +222,6 @@ const fetchAllActivities = async ({
   return activities;
 };
 
-const orderActivities = (what) => {
-  console.log(what);
-};
-
 const getFormData = (form) => {
   const formData = new FormData(form);
 
@@ -244,6 +240,39 @@ const getFormData = (form) => {
     activity_keyword: formData.get('activity_keyword'),
     activity_select_param: parseInt(formData.get('activity_select_param'), 10),
   };
+};
+
+const orderActivities = function (el, what) {
+  const order = el.getAttribute('data-order');
+  const $tr = el.parentNode.querySelectorAll('th[onclick]');
+  let newOrder;
+
+  if (order === 'asc') {
+    newOrder = 'desc';
+  } else {
+    newOrder = 'asc';
+  }
+
+  $tr.forEach(($el) => {
+    $el.removeAttribute('data-order');
+  });
+  el.setAttribute('data-order', newOrder);
+};
+
+const getDayOfWeekNumber = (day) => {
+  const week = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  return week.indexOf(day);
+};
+
+const formatActivities = (activities) => {
+  activities.forEach((activity) => {
+    activity.giulia = {
+      location: activity.location.label.replace('*', ''),
+      open_spots: activity.total_open - activity.already_enrolled,
+      registration_date_formatted: activity.activity_online_start_time,
+      days_of_week_number: getDayOfWeekNumber(activity.days_of_week),
+    };
+  });
 };
 
 $advanced_search.innerHTML = drawForm(fieldsets);
@@ -269,6 +298,9 @@ $form.on('submit', async function (event) {
     days_of_week,
     order_by,
   });
+
+  formatActivities(ALL_ACTIVITIES);
+  console.log(ALL_ACTIVITIES);
 
   $results.innerHTML = drawActivities(ALL_ACTIVITIES);
 });

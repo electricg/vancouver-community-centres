@@ -64,4 +64,21 @@ th, td {
 }
 th {
   text-align: left;
+  
+  &[onclick] {
+    cursor: pointer;
+
+    &::after {
+      color: transparent;
+      content: '▲';
+    }
+  }
+}
+th[data-order=asc]::after {
+  color: inherit;
+  content: '▲';
+}
+th[data-order=desc]::after {
+  color: inherit;
+  content: '▼';
 }
