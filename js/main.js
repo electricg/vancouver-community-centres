@@ -44,6 +44,7 @@ const fieldsets = [
     name: 'order_by',
     data: ORIGINAL_DATA.sorts.map((item) => ({ id: item, desc: item })),
     def: ['Location'],
+    hide: ['Ages'],
   },
 ];
 
@@ -80,12 +81,15 @@ const drawInput = (type, name, def, input) => {
 };
 
 const drawFieldset = (fieldset) => {
-  const { title, type, name, def, data } = fieldset;
+  const { title, type, name, def, data, hide } = fieldset;
 
   const code = `
       <fieldset id="${name}">
         <legend>${title}</legend>
-        ${data.map((input) => drawInput(type, name, def, input)).join('')}
+        ${data
+          .filter(({ id }) => !hide?.includes(id))
+          .map((input) => drawInput(type, name, def, input))
+          .join('')}
       </fieldset>
     `;
 
@@ -98,7 +102,6 @@ const drawForm = (fieldsets) => {
 
 const drawActivity = (activity) => {
   const {
-    activity_online_start_time,
     already_enrolled,
     name,
     date_range,
@@ -114,16 +117,17 @@ const drawActivity = (activity) => {
 
   const code = `
       <tr>
-        <td><a href="https://anc.ca.apm.activecommunities.com/vancouver/activity/search/enroll/${id}" target="_blank" rel="noreferrer">${number}</a></td>
+        <td><a href="https://anc.ca.apm.activecommunities.com/vancouver/activity/search/detail/${id}" target="_blank" rel="noreferrer">${number}</a></td>
         <td title="${escapeHTML(desc)}">${name}</td>
         <td>${giulia.location}</td>
         <td>${days_of_week}</td>
         <td>${time_range}</td>
         <td>${date_range}</td>
-        <td>${already_enrolled}</td>
         <td>${total_open}</td>
-        <td>${giulia.open_spots}</td>
-        <td><time datetime="${activity_online_start_time}">${giulia.registration_date_formatted}</time></td>
+        <td>${already_enrolled}</td>
+        <td>${giulia.openings}</td>
+        <td>${giulia.calc_openings}</td>
+        <td>${giulia.registration_date_formatted}</td>
         <td>${urgent_message.status_description}</td>
       </tr>
     `;
@@ -141,15 +145,16 @@ const drawActivities = (activities) => {
       <table>
         <thead>
           <tr>
-            <th>Number</th>
+            <th onclick="orderActivities(this,'number')">Number</th>
             <th onclick="orderActivities(this,'name')">Name</th>
             <th onclick="orderActivities(this,'location')">Location</th>
             <th onclick="orderActivities(this,'day')">Day</th>
             <th>Time</th>
             <th onclick="orderActivities(this,'period')">Period</th>
-            <th onclick="orderActivities(this,'registered')">Registered</th>
             <th onclick="orderActivities(this,'total')">Total</th>
-            <th onclick="orderActivities(this,'open')">Open</th>
+            <th onclick="orderActivities(this,'registered')">Registered</th>
+            <th onclick="orderActivities(this,'openings')">Openings</th>
+            <th onclick="orderActivities(this,'calc_openings')">Calc Op</th>
             <th onclick="orderActivities(this,'registration')">Registration date</th>
             <th>Status</th>
           </tr>
@@ -279,6 +284,10 @@ const orderActivities = function (el, what) {
     let a1, b1;
 
     switch (what) {
+      case 'number':
+        a1 = a.number;
+        b1 = b.number;
+        break;
       case 'name':
         a1 = a.name;
         b1 = b.name;
@@ -295,17 +304,21 @@ const orderActivities = function (el, what) {
         a1 = a.date_range_start;
         b1 = b.date_range_start;
         break;
-      case 'registered':
-        a1 = a.already_enrolled;
-        b1 = b.already_enrolled;
-        break;
       case 'total':
         a1 = a.total_open;
         b1 = b.total_open;
         break;
-      case 'open':
-        a1 = a.giulia.open_spots;
-        b1 = b.giulia.open_spots;
+      case 'registered':
+        a1 = a.already_enrolled;
+        b1 = b.already_enrolled;
+        break;
+      case 'openings':
+        a1 = a.giulia.openings;
+        b1 = b.giulia.openings;
+        break;
+      case 'calc_openings':
+        a1 = a.giulia.calc_openings;
+        b1 = b.giulia.calc_openings;
         break;
       case 'registration':
         a1 = a.activity_online_start_time;
@@ -332,6 +345,7 @@ const orderActivities = function (el, what) {
     }
   });
 
+  // todo
   $results.querySelector('tbody').innerHTML = ALL_ACTIVITIES.map((activity) =>
     drawActivity(activity)
   ).join('');
@@ -346,9 +360,14 @@ const formatActivities = (activities) => {
   activities.forEach((activity) => {
     activity.giulia = {
       location: activity.location.label.replace('*', ''),
-      open_spots: activity.total_open - activity.already_enrolled,
-      registration_date_formatted: activity.activity_online_start_time,
+      calc_openings: activity.total_open - activity.already_enrolled,
+      registration_date_formatted: activity.activity_online_start_time
+        ? `${activity.activity_online_start_time} (${new Date(
+            activity.activity_online_start_time
+          ).toLocaleString(undefined, { weekday: 'short' })})`
+        : '',
       days_of_week_number: getDayOfWeekNumber(activity.days_of_week),
+      openings: parseInt(activity.openings, 10),
     };
   });
 };
