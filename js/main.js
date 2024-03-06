@@ -53,6 +53,19 @@ const $advanced_search = $$('#advanced_search');
 
 let ALL_ACTIVITIES = [];
 
+const escapeHTML = (html) => {
+  const fn = (tag) => {
+    const charsToReplace = {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&#34;',
+    };
+    return charsToReplace[tag] || tag;
+  };
+  return html.replace(/[&<>"]/g, fn);
+};
+
 const drawInput = (type, name, def, input) => {
   const { id, desc } = input;
   const code = `
@@ -90,6 +103,7 @@ const drawActivity = (activity) => {
     name,
     date_range,
     days_of_week,
+    desc,
     id,
     number,
     time_range,
@@ -101,7 +115,7 @@ const drawActivity = (activity) => {
   const code = `
       <tr>
         <td><a href="https://anc.ca.apm.activecommunities.com/vancouver/activity/search/enroll/${id}" target="_blank" rel="noreferrer">${number}</a></td>
-        <td>${name}</td>
+        <td title="${escapeHTML(desc)}">${name}</td>
         <td>${giulia.location}</td>
         <td>${days_of_week}</td>
         <td>${time_range}</td>
