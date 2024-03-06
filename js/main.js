@@ -260,6 +260,67 @@ const orderActivities = function (el, what) {
     $el.removeAttribute('data-order');
   });
   el.setAttribute('data-order', newOrder);
+
+  ALL_ACTIVITIES.sort((a, b) => {
+    let a1, b1;
+
+    switch (what) {
+      case 'name':
+        a1 = a.name;
+        b1 = b.name;
+        break;
+      case 'location':
+        a1 = a.giulia.location;
+        b1 = b.giulia.location;
+        break;
+      case 'day':
+        a1 = a.giulia.days_of_week_number;
+        b1 = b.giulia.days_of_week_number;
+        break;
+      case 'period':
+        a1 = a.date_range_start;
+        b1 = b.date_range_start;
+        break;
+      case 'registered':
+        a1 = a.already_enrolled;
+        b1 = b.already_enrolled;
+        break;
+      case 'total':
+        a1 = a.total_open;
+        b1 = b.total_open;
+        break;
+      case 'open':
+        a1 = a.giulia.open_spots;
+        b1 = b.giulia.open_spots;
+        break;
+      case 'registration':
+        a1 = a.activity_online_start_time;
+        b1 = b.activity_online_start_time;
+        break;
+    }
+
+    if (newOrder === 'asc') {
+      if (a1 < b1) {
+        return -1;
+      }
+      if (a1 > b1) {
+        return 1;
+      }
+      return 0;
+    } else {
+      if (a1 < b1) {
+        return 1;
+      }
+      if (a1 > b1) {
+        return -1;
+      }
+      return 0;
+    }
+  });
+
+  $results.querySelector('tbody').innerHTML = ALL_ACTIVITIES.map((activity) =>
+    drawActivity(activity)
+  ).join('');
 };
 
 const getDayOfWeekNumber = (day) => {
@@ -303,7 +364,7 @@ $form.on('submit', async function (event) {
   });
 
   formatActivities(ALL_ACTIVITIES);
-  console.log(ALL_ACTIVITIES);
+  // console.log(ALL_ACTIVITIES);
 
   $results.innerHTML = drawActivities(ALL_ACTIVITIES);
 });
