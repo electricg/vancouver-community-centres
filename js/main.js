@@ -39,7 +39,7 @@ const fieldsets = [
     def: ['23'],
   },
   {
-    title: 'Sorty by',
+    title: 'Sort by',
     type: 'radio',
     name: 'order_by',
     data: ORIGINAL_DATA.sorts.map((item) => ({ id: item, desc: item })),
@@ -145,18 +145,18 @@ const drawActivities = (activities) => {
       <table>
         <thead>
           <tr>
-            <th onclick="orderActivities(this,'number')">Number</th>
-            <th onclick="orderActivities(this,'name')">Name</th>
-            <th onclick="orderActivities(this,'location')">Location</th>
-            <th onclick="orderActivities(this,'day')">Day</th>
-            <th>Time</th>
-            <th onclick="orderActivities(this,'period')">Period</th>
-            <th onclick="orderActivities(this,'total')">Total</th>
-            <th onclick="orderActivities(this,'registered')">Registered</th>
-            <th onclick="orderActivities(this,'openings')">Openings</th>
-            <th onclick="orderActivities(this,'calc_openings')">Calc Op</th>
-            <th onclick="orderActivities(this,'registration')">Registration date</th>
-            <th>Status</th>
+            <th onclick="orderActivities(this,'number')"        data-sort="Number"      >Number</th>
+            <th onclick="orderActivities(this,'name')"          data-sort="Name"        >Name</th>
+            <th onclick="orderActivities(this,'location')"      data-sort="Location"    >Location</th>
+            <th onclick="orderActivities(this,'day')"           data-sort="Days of week">Day</th>
+            <th                                                 data-sort="Time range"  >Time</th>
+            <th onclick="orderActivities(this,'period')"        data-sort="Date range"  >Period</th>
+            <th onclick="orderActivities(this,'total')"                                 >Total</th>
+            <th onclick="orderActivities(this,'registered')"                            >Registered</th>
+            <th onclick="orderActivities(this,'openings')"      data-sort="Openings"    >Openings</th>
+            <th onclick="orderActivities(this,'calc_openings')"                         >Calc Op</th>
+            <th onclick="orderActivities(this,'registration')"                          >Registration date</th>
+            <th                                                                         >Status</th>
           </tr>
         </thead>
         <tbody>
@@ -264,6 +264,27 @@ const getFormData = (form) => {
   };
 };
 
+const getDayOfWeekNumber = (day) => {
+  const week = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  return week.indexOf(day);
+};
+
+const formatActivities = (activities) => {
+  activities.forEach((activity) => {
+    activity.giulia = {
+      location: activity.location.label.replace('*', ''),
+      calc_openings: activity.total_open - activity.already_enrolled,
+      registration_date_formatted: activity.activity_online_start_time
+        ? `${activity.activity_online_start_time} (${new Date(
+            activity.activity_online_start_time
+          ).toLocaleString(undefined, { weekday: 'short' })})`
+        : '',
+      days_of_week_number: getDayOfWeekNumber(activity.days_of_week),
+      openings: parseInt(activity.openings, 10),
+    };
+  });
+};
+
 const orderActivities = function (el, what) {
   const order = el.getAttribute('data-order');
   const $tr = el.parentNode.querySelectorAll('th[onclick]');
@@ -324,6 +345,7 @@ const orderActivities = function (el, what) {
         a1 = a.activity_online_start_time;
         b1 = b.activity_online_start_time;
         break;
+      // todo time range
     }
 
     if (newOrder === 'asc') {
@@ -345,31 +367,9 @@ const orderActivities = function (el, what) {
     }
   });
 
-  // todo
   $results.querySelector('tbody').innerHTML = ALL_ACTIVITIES.map((activity) =>
     drawActivity(activity)
   ).join('');
-};
-
-const getDayOfWeekNumber = (day) => {
-  const week = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  return week.indexOf(day);
-};
-
-const formatActivities = (activities) => {
-  activities.forEach((activity) => {
-    activity.giulia = {
-      location: activity.location.label.replace('*', ''),
-      calc_openings: activity.total_open - activity.already_enrolled,
-      registration_date_formatted: activity.activity_online_start_time
-        ? `${activity.activity_online_start_time} (${new Date(
-            activity.activity_online_start_time
-          ).toLocaleString(undefined, { weekday: 'short' })})`
-        : '',
-      days_of_week_number: getDayOfWeekNumber(activity.days_of_week),
-      openings: parseInt(activity.openings, 10),
-    };
-  });
 };
 
 $advanced_search.innerHTML = drawForm(fieldsets);
@@ -397,7 +397,9 @@ $form.on('submit', async function (event) {
   });
 
   formatActivities(ALL_ACTIVITIES);
-  // console.log(ALL_ACTIVITIES);
 
   $results.innerHTML = drawActivities(ALL_ACTIVITIES);
+  $results
+    .querySelector(`th[data-sort="${order_by}"]`)
+    .setAttribute('data-order', 'asc');
 });
