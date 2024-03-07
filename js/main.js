@@ -1,11 +1,6 @@
 'use strict';
 
-const $ = document.querySelectorAll.bind(document);
 const $$ = document.querySelector.bind(document);
-Element.prototype.on = Element.prototype.addEventListener;
-
-// https://developer.mozilla.org/en/docs/Web/API/NodeList
-NodeList.prototype.forEach = Array.prototype.forEach;
 
 const fieldsets = [
   {
@@ -403,7 +398,7 @@ const orderActivities = function (el, what) {
 
 $advanced_search.innerHTML = drawForm(fieldsets);
 
-$form.on('submit', async function (event) {
+$form.addEventListener('submit', async function (event) {
   event.preventDefault();
   $results.innerHTML = 'Searching...';
 
