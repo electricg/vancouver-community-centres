@@ -15,6 +15,9 @@ label, input[type=submit], summary {
   cursor: pointer;
   user-select: none;
 }
+.hide {
+  display: none;
+}
 
 summary {
   max-width: 100%;
@@ -47,7 +50,12 @@ fieldset {
 #days_of_week {
   grid-template-columns: repeat(auto-fill, minmax(4em, 1fr));
 }
-
+#activities_filter {
+  margin: .5em 0 0;
+}
+#activity_hide_keywords {
+  width: 100%;
+}
 #results {
   margin: 1em 0;
   overflow-x: scroll;

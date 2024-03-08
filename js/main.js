@@ -46,8 +46,14 @@ const fieldsets = [
 const $form = $$('#form');
 const $results = $$('#results');
 const $advanced_search = $$('#advanced_search');
+const $activities_filter = $$('#activities_filter');
+const $activity_hide = $$('#activity_hide');
+const $activity_hide_keywords = $$('#activity_hide_keywords');
 
 let ALL_ACTIVITIES = [];
+
+let filter_active = false;
+let filter_keywords = [];
 
 const escapeHTML = (html) => {
   const fn = (tag) => {
@@ -130,13 +136,31 @@ const drawActivity = (activity) => {
   return code;
 };
 
+const drawActivitiesBody = (activities) => {
+  const filteredActivities = activities.filter((activity) => {
+    if (!filter_active) {
+      return true;
+    }
+    for (let i = 0; i < filter_keywords.length; i++) {
+      if (activity.name.toLowerCase().includes(filter_keywords[i])) {
+        return false;
+      }
+    }
+    return true;
+  });
+  $results.querySelector('tbody').innerHTML = filteredActivities
+    .map((activity) => drawActivity(activity))
+    .join('');
+  $results.querySelector('output').innerHTML = filteredActivities.length;
+};
+
 const drawActivities = (activities) => {
   if (activities.length === 0) {
     return `No activities found`;
   }
 
   const code = `
-      Found ${activities.length} activities
+      Found <output>${activities.length}</output> activities
       <table>
         <thead>
           <tr>
@@ -391,9 +415,7 @@ const orderActivities = function (el, what) {
     }
   });
 
-  $results.querySelector('tbody').innerHTML = ALL_ACTIVITIES.map((activity) =>
-    drawActivity(activity)
-  ).join('');
+  drawActivitiesBody(ALL_ACTIVITIES);
 };
 
 $advanced_search.innerHTML = drawForm(fieldsets);
@@ -401,6 +423,7 @@ $advanced_search.innerHTML = drawForm(fieldsets);
 $form.addEventListener('submit', async function (event) {
   event.preventDefault();
   $results.innerHTML = 'Searching...';
+  $activities_filter.classList.toggle('hide', true);
 
   const {
     activity_keyword,
@@ -423,7 +446,29 @@ $form.addEventListener('submit', async function (event) {
   formatActivities(ALL_ACTIVITIES);
 
   $results.innerHTML = drawActivities(ALL_ACTIVITIES);
-  $results
-    .querySelector(`th[data-sort="${order_by}"]`)
-    .setAttribute('data-order', 'asc');
+
+  if (ALL_ACTIVITIES.length) {
+    $results
+      .querySelector(`th[data-sort="${order_by}"]`)
+      .setAttribute('data-order', 'asc');
+  }
+  $activities_filter.classList.toggle('hide', !ALL_ACTIVITIES.length);
+});
+
+const runFilters = () => {
+  filter_keywords = $activity_hide_keywords.value
+    .split(',')
+    .map((str) => str.trim().toLowerCase())
+    .filter((str) => str !== '');
+  drawActivitiesBody(ALL_ACTIVITIES);
+};
+
+$activity_hide.addEventListener('change', function () {
+  $activity_hide_keywords.toggleAttribute('disabled', !this.checked);
+  filter_active = this.checked;
+  runFilters();
+});
+
+$activity_hide_keywords.addEventListener('input', function () {
+  runFilters();
 });
