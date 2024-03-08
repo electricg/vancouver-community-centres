@@ -466,12 +466,28 @@ const runFilters = () => {
   drawActivitiesBody(ALL_ACTIVITIES);
 };
 
+// https://remysharp.com/2010/07/21/throttling-function-calls/
+function debounce(fn, delay) {
+  var timer = null;
+  return function () {
+    var context = this,
+      args = arguments;
+    clearTimeout(timer);
+    timer = setTimeout(function () {
+      fn.apply(context, args);
+    }, delay);
+  };
+}
+
 $activity_hide.addEventListener('change', function () {
   $activity_hide_keywords.toggleAttribute('disabled', !this.checked);
   filter_active = this.checked;
   runFilters();
 });
 
-$activity_hide_keywords.addEventListener('input', function () {
-  runFilters();
-});
+$activity_hide_keywords.addEventListener(
+  'input',
+  debounce(function () {
+    runFilters();
+  }, 500)
+);
