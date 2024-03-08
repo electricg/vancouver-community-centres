@@ -424,8 +424,12 @@ $advanced_search.innerHTML = drawForm(fieldsets);
 $form.addEventListener('submit', async function (event) {
   event.preventDefault();
   $results.innerHTML = 'Searching...';
-  $activities_filter.classList.toggle('hide', true);
   $submit.toggleAttribute('disabled', true);
+
+  $activities_filter.classList.toggle('hide', true);
+  filter_active = false;
+  $activity_hide.checked = false;
+  $activity_hide_keywords.toggleAttribute('disabled', true);
 
   const {
     activity_keyword,
