@@ -44,6 +44,7 @@ const fieldsets = [
 ];
 
 const $form = $$('#form');
+const $submit = $$('#submit');
 const $results = $$('#results');
 const $advanced_search = $$('#advanced_search');
 const $activities_filter = $$('#activities_filter');
@@ -424,6 +425,7 @@ $form.addEventListener('submit', async function (event) {
   event.preventDefault();
   $results.innerHTML = 'Searching...';
   $activities_filter.classList.toggle('hide', true);
+  $submit.toggleAttribute('disabled', true);
 
   const {
     activity_keyword,
@@ -446,6 +448,7 @@ $form.addEventListener('submit', async function (event) {
   formatActivities(ALL_ACTIVITIES);
 
   $results.innerHTML = drawActivities(ALL_ACTIVITIES);
+  $submit.toggleAttribute('disabled', false);
 
   if (ALL_ACTIVITIES.length) {
     $results
