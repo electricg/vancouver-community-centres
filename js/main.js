@@ -176,7 +176,7 @@ const drawActivities = (activities) => {
             <th onclick="orderActivities(this,'openings')"      data-sort="Openings"    >Openings</th>
             <th onclick="orderActivities(this,'calc_openings')"                         >Calc Op</th>
             <th onclick="orderActivities(this,'registration')"                          >Registration date</th>
-            <th                                                                         >Status</th>
+            <th onclick="orderActivities(this,'status')"                                >Status</th>
           </tr>
         </thead>
         <tbody>
@@ -394,6 +394,10 @@ const orderActivities = function (el, what) {
       case 'registration':
         a1 = a.activity_online_start_time;
         b1 = b.activity_online_start_time;
+        break;
+      case 'status':
+        a1 = a.urgent_message.status_description;
+        b1 = b.urgent_message.status_description;
         break;
     }
 
