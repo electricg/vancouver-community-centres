@@ -90,3 +90,12 @@ th[data-order=desc]::after {
   color: inherit;
   content: '▼';
 }
+thead tr {
+  background: #BBB
+}
+tbody tr:nth-child(even) {
+  background: #EEE;
+}
+tbody tr:hover {
+  background: aqua;
+}
