@@ -50,11 +50,14 @@ const $advanced_search = $$('#advanced_search');
 const $activities_filter = $$('#activities_filter');
 const $activity_hide = $$('#activity_hide');
 const $activity_hide_keywords = $$('#activity_hide_keywords');
+const $activity_bug = $$('#activity_bug');
 
 let ALL_ACTIVITIES = [];
 
 let filter_active = false;
 let filter_keywords = [];
+
+let filter_with_bug = false;
 
 const escapeHTML = (html) => {
   const fn = (tag) => {
@@ -138,17 +141,27 @@ const drawActivity = (activity) => {
 };
 
 const drawActivitiesBody = (activities) => {
-  const filteredActivities = activities.filter((activity) => {
-    if (!filter_active) {
-      return true;
-    }
-    for (let i = 0; i < filter_keywords.length; i++) {
-      if (activity.name.toLowerCase().includes(filter_keywords[i])) {
-        return false;
+  const filteredActivities = activities
+    .filter((activity) => {
+      if (!filter_active) {
+        return true;
       }
-    }
-    return true;
-  });
+      for (let i = 0; i < filter_keywords.length; i++) {
+        if (activity.name.toLowerCase().includes(filter_keywords[i])) {
+          return false;
+        }
+      }
+      return true;
+    })
+    .filter((activity) => {
+      if (!filter_with_bug) {
+        return true;
+      }
+      if (activity.giulia.calc_openings !== activity.giulia.openings) {
+        return true;
+      }
+      return false;
+    });
   $results.querySelector('tbody').innerHTML = filteredActivities
     .map((activity) => drawActivity(activity))
     .join('');
@@ -434,6 +447,7 @@ $form.addEventListener('submit', async function (event) {
   filter_active = false;
   $activity_hide.checked = false;
   $activity_hide_keywords.toggleAttribute('disabled', true);
+  $activity_bug.checked = false;
 
   const {
     activity_keyword,
@@ -499,3 +513,8 @@ $activity_hide_keywords.addEventListener(
     runFilters();
   }, 500)
 );
+
+$activity_bug.addEventListener('change', function () {
+  filter_with_bug = this.checked;
+  runFilters();
+});

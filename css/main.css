@@ -52,6 +52,10 @@ fieldset {
 }
 #activities_filter {
   margin: .5em 0 0;
+
+  > div {
+    margin-bottom: 0.5em;
+  }
 }
 #activity_hide_keywords {
   width: 100%;

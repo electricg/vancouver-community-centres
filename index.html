@@ -23,11 +23,19 @@
     </details>
 
     <div id="activities_filter" class="hide">
-      <label for="activity_hide">
-        <input type="checkbox" id="activity_hide" name="activity_hide">
-        Hide results that contain the following text (separate each term with a comma ',')
-      </label>
-      <input type="text" id="activity_hide_keywords" name="activity_hide_keywords" disabled placeholder="Keywords of activities to hide" value="clinic, intermediate (thu)">
+      <div>
+        <label for="activity_hide">
+          <input type="checkbox" id="activity_hide" name="activity_hide">
+          Hide results that contain the following text (separate each term with a comma ',')
+        </label>
+        <input type="text" id="activity_hide_keywords" name="activity_hide_keywords" disabled placeholder="Keywords of activities to hide" value="clinic, intermediate (thu)">
+      </div>
+      <div>
+        <label for="activity_bug">
+          <input type="checkbox" id="activity_bug" name="activity_bug">
+          Show only results that have the bug
+        </label>
+      </div>
     </div>
   </form>
 
