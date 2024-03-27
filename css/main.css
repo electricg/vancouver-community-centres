@@ -35,6 +35,10 @@ fieldset {
   grid-gap: .5em;
   grid-template-columns: repeat(auto-fill, minmax(14em, 1fr));
 }
+#version {
+  align-self: flex-end;
+  font-size: 0.9rem;
+}
 #basic_search {
   display: flex;
   gap: 1em;
